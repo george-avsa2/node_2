@@ -7,7 +7,7 @@ function readFilePromise(path, encoding) {
         reject(err);
       } else {
         try {
-          const stringifiedData = JSON.stringify(data.toString());
+          const stringifiedData = JSON.parse(data.toString());
           resolve(stringifiedData);
         } catch (e) {
           reject(e);

@@ -1,8 +1,4 @@
 function parseBodyJson(req, cb) {
-  if (!req.body) {
-    cb(null);
-    return;
-  }
   let body = [];
 
   req
@@ -11,10 +7,13 @@ function parseBodyJson(req, cb) {
     })
     .on("end", function () {
       body = Buffer.concat(body).toString();
+      try {
+        let params = JSON.parse(body);
 
-      let params = JSON.parse(body);
-
-      cb(null, params);
+        cb(null, params);
+      } catch (e) {
+        cb(e);
+      }
     });
 }
 
