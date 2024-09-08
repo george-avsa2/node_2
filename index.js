@@ -28,8 +28,12 @@ function createServerWithCustomData(articles, comments) {
     });
 
     req.on("end", () => {
+      let body;
       try {
-        const body = JSON.parse(bodyData);
+        body = JSON.parse(bodyData);
+      } catch (err) {
+        console.log(err);
+      } finally {
         const [url, paramsString] = req.url.split("?");
         const params = paramsString?.split("&")?.reduce((acc, splittedParams) => {
           const [key, value] = splittedParams.split("=");
@@ -47,16 +51,11 @@ function createServerWithCustomData(articles, comments) {
           if (err) {
             res.statusCode = err.code;
             res.end(JSON.stringify(err));
-            return;
+          } else {
+            res.statusCode = 200;
+            res.end(JSON.stringify(result));
           }
-
-          res.statusCode = 200;
-          res.end(JSON.stringify(result));
         });
-      } catch (err) {
-        console.log(err);
-        res.statusCode = 400;
-        res.end(JSON.stringify({ code: 400, message: "Invalid JSON" }));
       }
     });
   };

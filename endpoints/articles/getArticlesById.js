@@ -1,10 +1,11 @@
 const responseCodes = require("../../constants/responseCodes");
+const checkBody = require("../../helpers/checkBody");
 
 function getArticlesById(req, res, reqData, cb) {
-  if (typeof reqData.body !== "object") {
-    cb({ code: responseCodes.BAD_REQUEST, message: "Body is empty" });
+  if (checkBody(reqData)) {
     return;
   }
+
   const article = reqData?.payload?.articles?.find((article) => article?.id === reqData.body.id);
   if (!article) {
     cb({ code: 400, message: `No article with id: ${reqData.body.id}` });
