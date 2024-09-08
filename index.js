@@ -1,5 +1,6 @@
 const http = require("http");
 const path = require("path");
+const fs = require("fs");
 const readFilePromise = require("./helpers/readFilePromise");
 const responseCodes = require("./constants/responseCodes");
 const getAllArticles = require("./endpoints/articles/getAllArticles");
@@ -7,6 +8,21 @@ const getArticlesById = require("./endpoints/articles/getArticlesById");
 const createArticle = require("./endpoints/articles/createArticle");
 const updateArticle = require("./endpoints/articles/updateArticle");
 const deleteArticle = require("./endpoints/articles/deleteArticle");
+
+const pino = require("pino");
+const pinoHttp = require("pino-http");
+
+const logPath = path.join(__dirname, "server.log");
+const logStream = fs.createWriteStream(logPath, { flags: "a" });
+
+const logger = pino(
+  {
+    level: "info",
+  },
+  logStream,
+);
+
+const httpLogger = pinoHttp({ logger });
 
 const hostname = "127.0.0.1";
 const port = 3000;
@@ -21,6 +37,7 @@ const handlers = {
 
 function createServerWithCustomData(articles, comments) {
   return (req, res) => {
+    httpLogger(req, res);
     let bodyData = "";
 
     req.on("data", (chunk) => {

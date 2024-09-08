@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/george-avsa2/node_2#readme",
   "dependencies": {
-    "nodemon": "^3.1.4",
-    "uuid": "^10.0.0"
+    "nodemon": "3.1.4",
+    "pino": "9.4.0",
+    "pino-http": "10.3.0",
+    "uuid": "10.0.0"
   }
 }
