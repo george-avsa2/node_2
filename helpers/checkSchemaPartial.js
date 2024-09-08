@@ -4,9 +4,9 @@ function checkSchemaPartial(data, schema) {
     if (!schema[field]) {
       errors.push(`${field} doesn't exists`);
     } else {
-      const isValidType = (schema[field] === "array" && Array.isArray(data[field])) || schema[field] === typeof data[field];
+      const isValidType = (schema[field]?.type === "array" && Array.isArray(data[field])) || schema[field]?.type === typeof data[field];
       if (!isValidType) {
-        errors.push(`${field} wrong type`);
+        errors.push(`${field} wrong type, should be ${schema[field]?.type}`);
       }
     }
   }

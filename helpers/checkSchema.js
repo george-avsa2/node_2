@@ -13,7 +13,7 @@ function checkSchema(data, schema) {
     if (!isValid) {
       errors.push(`${field} is not set`);
     } else if (!isTypeValid) {
-      errors.push(`${field} should be ${schema[field]}, not ${typeof data[field]}`);
+      errors.push(`${field} should be ${schema[field]?.type}, not ${typeof data[field]}`);
     }
   }
 

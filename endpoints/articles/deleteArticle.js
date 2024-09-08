@@ -2,6 +2,7 @@ const fs = require("fs");
 const responseCodes = require("../../constants/responseCodes");
 const checkBody = require("../../helpers/checkBody");
 const path = require("path");
+const writeJsonFileSync = require("../../helpers/writeJsonFileSync");
 
 function deleteArticle(req, res, reqData, cb) {
   const isError = checkBody(reqData, cb);
@@ -24,14 +25,8 @@ function deleteArticle(req, res, reqData, cb) {
     return;
   }
 
-  fs.writeFile(path.join(process.cwd(), "data", "articles.json"), JSON.stringify(newData), (err) => {
-    if (err) {
-      console.error("Error writing JSON to file", err);
-    } else {
-      articles = newData;
-      cb(null, articleToDelete);
-    }
-  });
+  writeJsonFileSync(path.join(process.cwd(), "data", "articles.json"), newData);
+  cb(null, articleToDelete);
 }
 
 module.exports = deleteArticle;

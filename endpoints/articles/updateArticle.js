@@ -35,14 +35,8 @@ function updateArticle(req, res, reqData, cb) {
     cb({ code: responseCodes.BAD_REQUEST, message: "No article with such id" });
   }
 
-  fs.writeFile(path.join(process.cwd(), "data", "articles.json"), JSON.stringify(newData), (err) => {
-    if (err) {
-      console.error("Error writing JSON to file", err);
-    } else {
-      reqData.payload.articles = newData;
-      cb(null, updatedArticle);
-    }
-  });
+  writeJsonFileSync(path.join(process.cwd(), "data", "articles.json"), newData);
+  cb(null, updatedArticle);
 }
 
 module.exports = updateArticle;

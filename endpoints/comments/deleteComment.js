@@ -24,14 +24,8 @@ function deleteComment(req, res, reqData, cb) {
     return;
   }
 
-  fs.writeFile(path.join(process.cwd(), "data", "comments.json"), JSON.stringify(newData), (err) => {
-    if (err) {
-      console.error("Error writing JSON to file", err);
-    } else {
-      articles = newData;
-      cb(null, commentToDelete);
-    }
-  });
+  writeJsonFileSync(path.join(process.cwd(), "data", "comments.json"), newData);
+  cb(null, commentToDelete);
 }
 
 module.exports = deleteComment;
