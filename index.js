@@ -11,6 +11,8 @@ const deleteArticle = require("./endpoints/articles/deleteArticle");
 
 const pino = require("pino");
 const pinoHttp = require("pino-http");
+const createComment = require("./endpoints/comments/createComment");
+const deleteComment = require("./endpoints/comments/deleteComment");
 
 const logPath = path.join(__dirname, "server.log");
 const logStream = fs.createWriteStream(logPath, { flags: "a" });
@@ -33,6 +35,8 @@ const handlers = {
   "/api/articles/create": createArticle,
   "/api/articles/update": updateArticle,
   "/api/articles/delete": deleteArticle,
+  "/api/comments/create": createComment,
+  "/api/comments/delete": deleteComment,
 };
 
 function createServerWithCustomData(articles, comments) {
