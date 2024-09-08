@@ -1,43 +1,66 @@
-const fs = require("fs");
 const http = require("http");
 const path = require("path");
 const readFilePromise = require("./helpers/readFilePromise");
-const parseBodyJson = require("./helpers/parseBodyJson");
 const responseCodes = require("./constants/responseCodes");
+const getAllArticles = require("./endpoints/articles/getAllArticles");
+const getArticlesById = require("./endpoints/articles/getArticlesById");
+const createArticle = require("./endpoints/articles/createArticle");
+const updateArticle = require("./endpoints/articles/updateArticle");
+const deleteArticle = require("./endpoints/articles/deleteArticle");
 
 const hostname = "127.0.0.1";
 const port = 3000;
 
 const handlers = {
-  "/sum": sum,
   "/api/articles/readall": getAllArticles,
   "/api/articles/read": getArticlesById,
   "/api/articles/create": createArticle,
   "/api/articles/update": updateArticle,
+  "/api/articles/delete": deleteArticle,
 };
 
 function createServerWithCustomData(articles, comments) {
   return (req, res) => {
-    parseBodyJson(req, (err, params) => {
-      const handler = getHandler(req.url);
+    let bodyData = "";
 
-      handler(req, res, { articles, comments }, params, (err, result) => {
-        res.setHeader("Content-Type", "application/json");
+    req.on("data", (chunk) => {
+      bodyData += chunk;
+    });
 
-        if (err) {
-          res.statusCode = err.code;
-          res.end(JSON.stringify(err));
+    req.on("end", () => {
+      try {
+        const body = JSON.parse(bodyData);
+        const [url, paramsString] = req.url.split("?");
+        const params = paramsString?.split("&")?.reduce((acc, splittedParams) => {
+          const [key, value] = splittedParams.split("=");
+          acc[key] = value;
+          return acc;
+        }, {});
 
-          return;
-        }
+        const handler = getHandler(url);
+        const data = { articles, comments };
+        const objectAttributes = { payload: data, params, body };
 
-        res.statusCode = 200;
-        res.end(JSON.stringify(result));
-      });
+        handler(req, res, objectAttributes, (err, result) => {
+          res.setHeader("Content-Type", "application/json");
+
+          if (err) {
+            res.statusCode = err.code;
+            res.end(JSON.stringify(err));
+            return;
+          }
+
+          res.statusCode = 200;
+          res.end(JSON.stringify(result));
+        });
+      } catch (err) {
+        console.log(err);
+        res.statusCode = 400;
+        res.end(JSON.stringify({ code: 400, message: "Invalid JSON" }));
+      }
     });
   };
 }
-
 async function startServer() {
   const filesToGet = ["articles.json", "comments.json"].map((fileName) => readFilePromise(path.join(__dirname, "data", fileName)));
   console.log("Getting data from database");
@@ -55,79 +78,7 @@ function getHandler(url) {
   return handlers[url] || notFound;
 }
 
-function sum(req, res, comments, payload, cb) {
-  console.log(comments, payload);
-  if (!payload) {
-    cb({ code: responseCodes.BAD_REQUEST, message: "Body is empty" });
-    return;
-  }
-
-  const result = { c: payload.a + payload.b };
-
-  cb(null, result);
-}
-
-function getAllArticles(req, res, { articles }, payload, cb) {
-  cb(null, articles);
-}
-
-function getArticlesById(req, res, { comments, articles }, payload, cb) {
-  if (!payload) {
-    cb({ code: responseCodes.BAD_REQUEST, message: "Body is empty" });
-    return;
-  }
-  const article = articles.find((article) => article?.id === payload.id);
-  if (!article) {
-    cb({ code: 400, message: `No article with id: ${payload.id}` });
-  }
-  const filteredComments = comments?.filter((comment) => comment?.articleId === article.id);
-  cb(null, { ...article, comments: filteredComments });
-}
-
-function createArticle(req, res, { articles }, payload, cb) {
-  if (!payload) {
-    cb({ code: responseCodes.BAD_REQUEST, message: "Body is empty" });
-    return;
-  }
-  const newData = [...articles, payload];
-  fs.writeFile(path.join(__dirname, "data", "articles.json"), JSON.stringify(newData), (err) => {
-    if (err) {
-      console.error("Error writing JSON to file", err);
-    } else {
-      articles.push(payload);
-      cb(null, payload);
-    }
-  });
-}
-
-function updateArticle(req, res, { articles }, payload, cb) {
-  if (!payload) {
-    cb({ code: responseCodes.BAD_REQUEST, message: "Body is empty" });
-    return;
-  }
-
-  let updatedArticle;
-
-  const newData = articles.map((article) => {
-    if (article.id === payload.id) {
-      const keklol = { ...article, ...payload };
-      updatedArticle = keklol;
-      return keklol;
-    }
-    return article;
-  });
-
-  fs.writeFile(path.join(__dirname, "data", "articles.json"), JSON.stringify(newData), (err) => {
-    if (err) {
-      console.error("Error writing JSON to file", err);
-    } else {
-      articles = newData;
-      cb(null, updatedArticle);
-    }
-  });
-}
-
-function notFound(req, res, payload, cb) {
+function notFound(req, res, data, cb) {
   cb({ code: 404, message: "Not found" });
 }
 
